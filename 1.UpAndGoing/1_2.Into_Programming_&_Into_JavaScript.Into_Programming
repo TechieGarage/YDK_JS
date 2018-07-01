@@ -1,0 +1,485 @@
+
+-> It's typically asserted that JavaScript is interpreted, because your JavaScript source code is processed each time it's run. 
+   But that's not entirely accurate. The JavaScript engine actually compiles the program on the fly and then immediately runs 
+   the compiled code.
+
+-> JavaScript has typed values, not typed variables. [i.e. Dynamic typed]
+
+-> JavaScript is weakly typed Dynamic language [Python is strongly typed Dynamic language]
+   [Check: https://wiki.python.org/moin/Why%20is%20Python%20a%20dynamic%20language%20and%20also%20a%20strongly%20typed%20language]
+
+-> The following built-in types are available:
+    -> string
+    -> number
+    -> boolean
+    -> null and undefined
+    -> object
+    -> symbol (new to ES6)
+
+-> typeof null is an interesting case, because it errantly returns "object", when you'd expect it to return "null".
+
+   Warning: This is a long-standing bug in JS, but one that is likely never going to be fixed. Too much code on the 
+   Web relies on the bug and thus fixing it would cause a lot more bugs!
+
+  Eg: 
+    a = null;
+    typeof a;				// "object" -- weird, bug
+
+   Note: typeof "abc" returns "string", not string.
+
+-> Note:  
+    a = undefined. We're explicitly setting a to the undefined value, but that is behaviorally no different 
+    from a variable that has no value set yet, like with the var a;
+
+
+Object: 
+-------
+-> Properties can either be accessed with dot notation (i.e., obj.a) or bracket notation (i.e., obj["a"]). 
+   Dot notation is shorter and generally easier to read, and is thus preferred when possible.
+
+   Bracket notation is useful if you have a property name that has special characters in it, like obj["hello world!"] -- such 
+   properties are often referred to as keys when accessed via bracket notation. The [ ] notation requires either a variable 
+   (explained next) or a string literal (which needs to be wrapped in " .. " or ' .. '). 
+
+   bracket notation is also useful if you want to access a property/key but the name is stored in another variable.
+
+   Eg:
+        var obj = {
+            a: "hello world",
+            b: 42
+        };
+
+        var b = "a";
+
+        obj[b];			// "hello world"
+        obj["b"];		// 42
+
+Arrays:
+-------
+-> An array is an object that holds values (of any type) not particularly in named properties/keys, but rather in numerically 
+   indexed positions.
+
+
+Functions:
+----------
+-> Again, functions are a subtype of objects -- typeof returns "function", which implies that a function is a main type -- and can 
+   thus have properties, but you typically will only use function object properties (like foo.bar) in limited cases.
+
+
+Built-In Type Methods:
+---------------------
+-> When you use a primitive value like "hello world" as an object by referencing a property or method (e.g., a.toUpperCase() 
+   in the previous snippet), JS automatically "boxes" the value to its object wrapper counterpart (hidden under the covers).
+
+
+Truthy & Falsy:
+---------------
+
+-> The specific list of "falsy" values in JavaScript is as follows:
+
+    -> "" (empty string)
+    -> 0, -0, NaN (invalid number)
+    -> null, undefined
+    -> false
+
+    Any value that's not on this "falsy" list is "truthy."
+
+
+Equality:
+---------
+
+-> The difference between == and === is usually characterized that == checks for value equality and === checks for both value 
+   and type equality. 
+   
+   However, this is inaccurate. The proper way to characterize them is that == checks for value equality 
+   with coercion allowed, and === checks for value equality without allowing coercion; === is often called "strict equality" 
+   for this reason.
+
+    http://www.ecma-international.org/ecma-262/5.1/#sec-11.9
+
+-> You should take special note of the == and === comparison rules if you're comparing two non-primitive values, like objects 
+   (including function and array). Because those values are actually held by reference, both == and === comparisons will simply 
+   check whether the references match, not anything about the underlying values.
+
+-> arrays are by default coerced to strings by simply joining all the values with commas (,) in between. You might think that 
+   two arrays with the same contents would be == equal, but they're not:
+
+    Eg:
+        var a = [1,2,3];
+        var b = [1,2,3];
+        var c = "1,2,3";
+
+        a == c;		// true
+        b == c;		// true
+        a == b;		// false
+
+
+Inequality:
+-----------
+Note: there are no "strict inequality" operators that would disallow coercion the same way === "strict equality" does.
+
+    Eg-1:
+        var a = 41;
+        var b = "42";
+        var c = "43";
+
+        a < b;		// true
+        b < c;		// true
+
+    -> if both values in the < comparison are strings, as it is with b < c, the comparison is made lexicographically 
+       (aka alphabetically like a dictionary). But if one or both is not a string, as it is with a < b, then both values 
+       are coerced to be numbers, and a typical numeric comparison occurs.
+
+    Eg-2:
+        var a = 42;
+        var b = "foo";
+
+        a < b;		// false
+        a > b;		// false
+        a == b;		// false
+
+    -> all three of those comparisons be false? Because the b value is being coerced to the "invalid number value" NaN in 
+       the < and > comparisons, and the specification says that NaN is neither greater-than nor less-than any other value.
+
+       The == comparison fails for a different reason. a == b could fail if it's interpreted either as 42 == NaN or 
+       "42" == "foo" -- as we explained earlier, the former is the case.
+
+
+Variables:
+----------
+-> An identifier must start with a-z, A-Z, $, or _. It can then contain any of those characters plus the numerals 0-9.
+
+-> Generally, the same rules apply to a property name as to a variable identifier. However, certain words cannot be used 
+   as variables, but are OK as property names. These words are called "reserved words," and include the JS keywords 
+   (for, in, if, etc.) as well as null, true, and false.
+
+
+Function Scopes:
+----------------
+-> Hoisting: 
+    -> Metaphorically, this behavior is called hoisting, when a var declaration is conceptually "moved" to the top of its 
+       enclosing scope. Technically, this process is more accurately explained by how code is compiled.
+
+    Warning: It's not common or a good idea to rely on variable hoisting to use a variable earlier in its scope than 
+             its var declaration appears; it can be quite confusing. It's much more common and accepted to use hoisted 
+             function declarations.
+
+        Eg:
+        var a = 2;
+        foo();					// works because `foo()` declaration is "hoisted"                                        
+
+        function foo() {
+            a = 3;
+            console.log( a );	// 3
+            var a;				// declaration is "hoisted" to the top of `foo()`                                        
+        }
+
+        console.log( a );	// 2
+
+    -> When you declare a variable, it is available anywhere in that scope, as well as any lower/inner scopes.
+    -> If you try to access a variable's value in a scope where it's not available, you'll get a ReferenceError thrown. 
+       If you try to set a variable that hasn't been declared, you'll either end up creating a variable in the top-level 
+       global scope (bad!) or getting an error, depending on "strict mode" (see "Strict Mode").
+
+    -> ES6 lets you declare variables to belong to individual blocks (pairs of { .. }), using the let keyword. 
+
+
+Strict Mode:
+------------
+-> ES5 added a "strict mode" to the language, which tightens the rules for certain behaviors.
+-> You can opt in to strict mode for an individual function, or an entire file, depending on where you put the strict mode pragma.
+
+   Eg:
+        function foo() {
+            "use strict";
+
+            // this code is strict mode
+
+            function bar() {
+                // this code is strict mode
+            }
+        }
+
+        // this code is not strict mode
+
+
+-> If you turn on strict mode in your code, and you get errors, or code starts behaving buggy, your temptation might be to 
+   avoid strict mode. But that instinct would be a bad idea to indulge. If strict mode causes issues in your program, almost 
+   certainly it's a sign that you have things in your program you should fix.
+
+   Eg:
+    function foo() {
+        "use strict";	// turn on strict mode
+        a = 1;			// `var` missing, ReferenceError
+    }
+
+    foo();
+
+
+Functions As Values:
+--------------------
+    Eg:
+        var foo = function() {
+            // ..
+        };
+
+        var x = function bar(){
+            // ..
+        };
+
+    -> The first function expression assigned to the foo variable is called anonymous because it has no name.
+    -> The second function expression is named (bar), even as a reference to it is also assigned to the x variable. 
+       Named function expressions are generally more preferable, though anonymous function expressions are still extremely common.
+
+
+Immediately Invoked Function Expressions (IIFEs):
+-------------------------------------------------
+
+    Eg:
+        (function IIFE(){
+            console.log( "Hello!" );
+        })();
+        // "Hello!"
+
+**Imp**
+Closure:
+--------
+-> You can think of closure as a way to "remember" and continue to access a function's scope (its variables) even once 
+   the function has finished running.
+
+   Eg:
+        function makeAdder(x) {
+            // parameter `x` is an inner variable
+
+            // inner function `add()` uses `x`, so
+            // it has a "closure" over it
+            function add(y) {
+                return y + x;
+            };
+
+            return add;
+        }
+
+    -> The reference to the inner add(..) function that gets returned with each call to the outer makeAdder(..) is able 
+       to remember whatever x value was passed in to makeAdder(..). Now, let's use makeAdder(..):
+
+       Eg:
+        // `plusOne` gets a reference to the inner `add(..)` function with closure over the `x` parameter of the outer `makeAdder(..)`
+        var plusOne = makeAdder( 1 );
+
+        // `plusTen` gets a reference to the inner `add(..)` function with closure over the `x` parameter of the outer `makeAdder(..)`
+        var plusTen = makeAdder( 10 );
+
+        plusOne( 3 );		// 4  <-- 1 + 3
+        plusOne( 41 );		// 42 <-- 1 + 41
+
+        plusTen( 13 );		// 23 <-- 10 + 13
+
+
+Modules:
+--------
+-> The most common usage of closure in JavaScript is the module pattern. Modules let you define private implementation details 
+   (variables, functions) that are hidden from the outside world, as well as a public API that is accessible from the outside.
+
+   Eg:
+    function User(){
+        var username, password;
+        function doLogin(user,pw) {
+            username = user;
+            password = pw;
+
+            // do the rest of the login work
+        }
+
+        var publicAPI = {
+            login: doLogin
+        };
+
+        return publicAPI;
+    }
+
+    // create a `User` module instance
+    var fred = User();
+
+    fred.login( "fred", "12Battery34!" );
+
+    -> The inner doLogin() function has a closure over username and password, meaning it will retain its access to them even after 
+       the User() function finishes running.
+
+       publicAPI is an object with one property/method on it, login, which is a reference to the inner doLogin() function. 
+       When we return publicAPI from User(), it becomes the instance we call fred.
+
+       At this point, the outer User() function has finished executing. Normally, you'd think the inner variables like username 
+       and password have gone away. But here they have not, because there's a closure in the login() function keeping them alive.
+
+    
+`this` Identifier:
+------------------
+-> While it may often seem that this is related to "object-oriented patterns," in JS this is a different mechanism.
+
+   If a function has a this reference inside it, that this reference usually points to an object. But which object 
+   it points to depends on how the function was called.
+
+   It's important to realize that this does not refer to the function itself, as is the most common misconception.
+
+
+    Eg:
+        function foo() {
+            console.log( this.bar );
+        }
+
+        var bar = "global";
+
+        var obj1 = {
+            bar: "obj1",
+            foo: foo
+        };
+
+        var obj2 = {
+            bar: "obj2"
+        };
+
+        // --------
+
+        foo();				// "global"
+        obj1.foo();			// "obj1"
+        foo.call( obj2 );		// "obj2"
+        new foo();			// undefined
+
+
+    There are four rules for how this gets set, and they're shown in those last four lines of that snippet.
+
+        1. foo() ends up setting this to the global object in non-strict mode -- in strict mode, this would be 
+           undefined and you'd get an error in accessing the bar property -- so "global" is the value found for this.bar.
+        2. obj1.foo() sets this to the obj1 object.
+        3. foo.call(obj2) sets this to the obj2 object.
+        4. new foo() sets this to a brand new empty object.
+
+
+
+Prototypes:
+------------
+-> When you reference a property on an object, if that property doesn't exist, JavaScript will automatically use that 
+   object's internal prototype reference to find another object to look for the property on. You could think of this 
+   almost as a fallback if the property is missing.
+
+-> The internal prototype reference linkage from one object to its fallback happens at the time the object is created.
+
+    Eg:
+        var foo = {
+            a: 42
+        };
+
+        // create `bar` and link it to `foo`
+        var bar = Object.create( foo );
+
+        bar.b = "hello world";
+
+        bar.b;		// "hello world"
+        bar.a;		// 42 <-- delegated to `foo`
+
+        -> The a property doesn't actually exist on the bar object, but because bar is prototype-linked to foo, JavaScript 
+           automatically falls back to looking for a on the foo object, where it's found.
+
+           This linkage may seem like a strange feature of the language. The most common way this feature is used -- and I would 
+           argue, abused -- is to try to emulate/fake a "class" mechanism with "inheritance."
+
+           But a more natural way of applying prototypes is a pattern called "behavior delegation," where you intentionally 
+           design your linked objects to be able to delegate from one to the other for parts of the needed behavior.
+
+
+Old & New:
+----------
+-> There are two main techniques you can use to "bring" the newer JavaScript stuff to the older browsers: polyfilling and transpiling.
+   [because some of the newest features in the specification aren't even implemented in any stable browsers yet.]
+
+
+Polyfilling:
+------------
+-> The word "polyfill" is an invented term (by Remy Sharp) (https://remysharp.com/2010/10/08/what-is-a-polyfill) used to refer to 
+   taking the definition of a newer feature and producing a piece of code that's equivalent to the behavior, but is able to run 
+   in older JS environments.
+
+    Eg:
+        ES6 defines a utility called Number.isNaN(..) to provide an accurate non-buggy check for NaN values, deprecating the 
+        original isNaN(..) utility. But it's easy to polyfill that utility so that you can start using it in your code regardless
+        of whether the end user is in an ES6 browser or not.
+
+        if (!Number.isNaN) {
+            Number.isNaN = function isNaN(x) {
+                return x !== x;
+            };
+        }
+
+        The if statement guards against applying the polyfill definition in ES6 browsers where it will already exist. If it's 
+        not already present, we define Number.isNaN(..).
+
+        NaN is the only value in the whole language that is not equal to itself.
+
+        Not all new features are fully polyfillable.
+
+
+Transpiling:
+------------
+-> There's no way to polyfill new syntax that has been added to the language. The new syntax would throw an error in the old 
+   JS engine as unrecognized/invalid.
+
+   So the better option is to use a tool that converts your newer code into older code equivalents. This process is commonly 
+   called "transpiling," a term for transforming + compiling.
+
+   You typically insert the transpiler into your build process, similar to your code linter or your minifier.
+
+    Eg:
+        function foo(a = 2) {
+            console.log( a );
+        }
+
+        foo();		// 2
+        foo( 42 );	// 42
+
+
+        Equivalent Transpiled code:
+        ---------------------------
+        function foo() {
+            var a = arguments[0] !== (void 0) ? arguments[0] : 2;
+            console.log( a );
+        }
+        
+        Note: undefined is the only value that can't get explicitly passed in for a default-value parameter, but the 
+              transpiled code makes that much more clear.
+
+        Eg:
+            > function f (x=2) { console.log(x) }
+            undefined
+            > f(undefined)
+            2
+            undefined
+            > f(null)
+            null
+            undefined
+
+    There are quite a few great transpilers for you to choose from. Here are some good options at the time of this writing:
+
+    1. Babel (https://babeljs.io) (formerly 6to5): Transpiles ES6+ into ES5
+    2. Traceur (https://github.com/google/traceur-compiler): Transpiles ES6, ES7, and beyond into ES5
+
+
+Non-JavaScript:
+---------------
+-> So far, the only things we've covered are in the JS language itself. The reality is that most JS is written to run in and 
+   interact with environments like browsers. A good chunk of the stuff that you write in your code is, strictly speaking, not 
+   directly controlled by JavaScript.
+
+-> The most common non-JavaScript JavaScript you'll encounter is the DOM API.
+    Eg:
+        var el = document.getElementById( "foo" );
+
+-> The document variable exists as a global variable when your code is running in a browser. It's not provided by the JS engine, 
+   nor is it particularly controlled by the JavaScript specification. It takes the form of something that looks an awful lot 
+   like a normal JS object, but it's not really exactly that. It's a special object, often called a "host object."
+
+-> Everyone's favorite alert(..) pops up a message box in the user's browser window. alert(..) is provided to your JS program 
+   by the browser, not by the JS engine itself.
+
+-> The same goes with console.log(..); your browser provides such mechanisms and hooks them up to the developer tools.
+
